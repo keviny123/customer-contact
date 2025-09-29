@@ -22,8 +22,15 @@ public class ContactDto {
     @Size(max = 20, message = "Phone must not exceed 20 characters")
     private String phone;
     
+    @Size(max = 20, message = "Primary phone must not exceed 20 characters")
+    private String primaryPhone;
+    
     @Size(max = 200, message = "Address must not exceed 200 characters")
     private String address;
+    
+    @Email(message = "Primary email should be valid")
+    @Size(max = 100, message = "Primary email must not exceed 100 characters")
+    private String primaryEmail;
 
     public ContactDto() {}
 
@@ -34,6 +41,7 @@ public class ContactDto {
         this.email = email;
         this.phone = phone;
         this.address = address;
+        // primaryPhone and primaryEmail can be set separately
     }
 
     // Getters and setters
@@ -54,4 +62,10 @@ public class ContactDto {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+    
+    public String getPrimaryPhone() { return primaryPhone; }
+    public void setPrimaryPhone(String primaryPhone) { this.primaryPhone = primaryPhone; }
+    
+    public String getPrimaryEmail() { return primaryEmail; }
+    public void setPrimaryEmail(String primaryEmail) { this.primaryEmail = primaryEmail; }
 }

@@ -9,7 +9,7 @@ public class ContactMapper {
         if (contact == null) {
             return null;
         }
-        return new ContactDto(
+        ContactDto dto = new ContactDto(
             contact.getId(),
             contact.getFirstName(),
             contact.getLastName(),
@@ -17,6 +17,9 @@ public class ContactMapper {
             contact.getPhone(),
             contact.getAddress()
         );
+        dto.setPrimaryPhone(contact.getPrimaryPhone());
+        dto.setPrimaryEmail(contact.getPrimaryEmail());
+        return dto;
     }
 
     public static Contact toEntity(ContactDto contactDto, Contact existingContact) {
@@ -34,6 +37,8 @@ public class ContactMapper {
         existingContact.setLastName(contactDto.getLastName());
         existingContact.setPhone(contactDto.getPhone());
         existingContact.setAddress(contactDto.getAddress());
+        existingContact.setPrimaryPhone(contactDto.getPrimaryPhone());
+        existingContact.setPrimaryEmail(contactDto.getPrimaryEmail());
         
         return existingContact;
     }

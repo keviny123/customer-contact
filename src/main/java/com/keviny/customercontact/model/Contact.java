@@ -22,8 +22,14 @@ public class Contact {
     @Column(length = 20)
     private String phone;
     
+    @Column(length = 20)
+    private String primaryPhone;
+    
     @Column(length = 200)
     private String address;
+    
+    @Column(length = 100)
+    private String primaryEmail;
 
     public Contact() {}
 
@@ -33,6 +39,7 @@ public class Contact {
         this.email = email;
         this.phone = phone;
         this.address = address;
+        // primaryPhone and primaryEmail can be set separately
     }
 
     // Getters and setters
@@ -53,4 +60,10 @@ public class Contact {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+    
+    public String getPrimaryPhone() { return primaryPhone; }
+    public void setPrimaryPhone(String primaryPhone) { this.primaryPhone = primaryPhone; }
+    
+    public String getPrimaryEmail() { return primaryEmail; }
+    public void setPrimaryEmail(String primaryEmail) { this.primaryEmail = primaryEmail; }
 }
