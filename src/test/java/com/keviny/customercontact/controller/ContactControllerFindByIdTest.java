@@ -1,9 +1,6 @@
 package com.keviny.customercontact.controller;
 
 import com.keviny.customercontact.dto.ContactDto;
-import com.keviny.customercontact.model.Contact;
-import com.keviny.customercontact.repository.ContactRepository;
-import com.keviny.customercontact.service.ContactService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,9 +22,6 @@ public class ContactControllerFindByIdTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Autowired
-    private ContactRepository contactRepository;
-
     @Test
     public void testFindById_ExistingContact_ReturnsContact() {
         // Arrange - Create a test contact first
@@ -48,7 +42,10 @@ public class ContactControllerFindByIdTest {
 
         assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
         assertNotNull(createResponse.getBody());
-        Long contactId = createResponse.getBody().getId();
+        
+        ContactDto createResponseBody = createResponse.getBody();
+        assertNotNull(createResponseBody); // Additional null check
+        Long contactId = createResponseBody.getId();
         assertNotNull(contactId);
 
         // Act - Retrieve the contact by ID
@@ -60,10 +57,13 @@ public class ContactControllerFindByIdTest {
         // Assert
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
         assertNotNull(getResponse.getBody());
-        assertEquals("John", getResponse.getBody().getFirstName());
-        assertEquals("Doe", getResponse.getBody().getLastName());
-        assertEquals("john.findbyid@example.com", getResponse.getBody().getEmail());
-        assertEquals(contactId, getResponse.getBody().getId());
+        
+        ContactDto responseBody = getResponse.getBody();
+        assertNotNull(responseBody); // Additional null check
+        assertEquals("John", responseBody.getFirstName());
+        assertEquals("Doe", responseBody.getLastName());
+        assertEquals("john.findbyid@example.com", responseBody.getEmail());
+        assertEquals(contactId, responseBody.getId());
     }
 
     @Test

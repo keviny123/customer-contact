@@ -59,7 +59,18 @@ public class GlobalExceptionHandler {
         logger.warn("Type mismatch error: {}", ex.getMessage());
         
         Map<String, String> errors = new HashMap<>();
-        errors.put(ex.getName(), "Invalid value: " + ex.getValue() + ". Expected type: " + ex.getRequiredType().getSimpleName());
+        String typeName = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "Unknown";
+        String paramName = ex.getName() != null ? ex.getName() : "parameter";
+        
+        String value;
+        Object valueObj = ex.getValue();
+        if (valueObj != null) {
+            value = valueObj.toString();
+        } else {
+            value = "null";
+        }
+        
+        errors.put(paramName, "Invalid value: " + value + ". Expected type: " + typeName);
         
         ErrorResponse errorResponse = new ErrorResponse("Invalid parameter type", errors);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
