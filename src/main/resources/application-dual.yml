@@ -1,4 +1,16 @@
+# Alternative Database Configuration Options
+# Choose one of the following configurations:
+
+# Option 1: H2 Database (for immediate testing)
 spring:
+  profiles:
+    active: h2
+  
+---
+spring:
+  config:
+    activate:
+      on-profile: h2
   datasource:
     url: jdbc:h2:file:./data/contactdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
@@ -7,38 +19,20 @@ spring:
     
     # HikariCP connection pool configuration optimized for HIGH TPS
     hikari:
-      # Aggressive connection pool sizing for maximum TPS
       maximum-pool-size: 50
       minimum-idle: 15
-      
-      # Optimized timeout settings for high throughput
       connection-timeout: 10000
       validation-timeout: 3000
       idle-timeout: 300000
       max-lifetime: 900000
-      
-      # High performance optimizations
       auto-commit: false
       read-only: false
-      
-      # Fast connection validation
       connection-test-query: SELECT 1
-      
-      # Pool name for monitoring
       pool-name: ContactAPIHikariCP
-      
-      # Reduced leak detection for better performance
       leak-detection-threshold: 30000
-      
-      # HikariCP specific optimizations for high TPS
       initialization-fail-timeout: 1
       isolate-internal-queries: false
       allow-pool-suspension: false
-      
-      # Connection acquisition optimizations  
-      # connection-init-sql: removed for H2 compatibility
-      
-      # Data source properties for H2 optimization
       data-source-properties:
         cachePrepStmts: true
         prepStmtCacheSize: 500
@@ -58,7 +52,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
-        # Aggressive performance optimizations for maximum TPS
         jdbc:
           batch_size: 50
           order_inserts: true
@@ -74,14 +67,71 @@ spring:
         generate_statistics: false
     show-sql: false
 
-  # Jackson configuration
-  jackson:
-    deserialization:
-      fail-on-unknown-properties: true
+---
+# Option 2: MySQL Database (when password is configured)
+spring:
+  config:
+    activate:
+      on-profile: mysql
+  datasource:
+    url: jdbc:mysql://localhost:3306/contactdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: contactapi
+    password: password
+    
+    # HikariCP connection pool configuration optimized for HIGH TPS
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 15
+      connection-timeout: 10000
+      validation-timeout: 3000
+      idle-timeout: 300000
+      max-lifetime: 900000
+      auto-commit: false
+      read-only: false
+      connection-test-query: SELECT 1
+      pool-name: ContactAPIHikariCP
+      leak-detection-threshold: 30000
+      initialization-fail-timeout: 1
+      isolate-internal-queries: false
+      allow-pool-suspension: false
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 500
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+      
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 50
+          order_inserts: true
+          order_updates: true
+          batch_versioned_data: true
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+        connection:
+          provider_disables_autocommit: true
+        temp:
+          use_jdbc_metadata_defaults: false
+        generate_statistics: false
+    show-sql: false
 
+# Common configuration for both profiles
 server:
   port: ${SERVER_PORT:8081}
-  # Tomcat configuration optimized for maximum TPS
   tomcat:
     threads:
       max: 500
@@ -106,56 +156,11 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,hikaricp,prometheus,circuitbreakers,retries
+        include: health,info,metrics,hikaricp
   endpoint:
     health:
       show-details: always
-      show-components: always
   metrics:
     export:
       simple:
         enabled: true
-      prometheus:
-        enabled: true
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
-      slo:
-        http.server.requests: 50ms,100ms,200ms,300ms,500ms,1s
-
-# Resilience4j configuration for fault tolerance
-resilience4j:
-  circuitbreaker:
-    instances:
-      contactService:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 5s
-        failureRateThreshold: 50
-        eventConsumerBufferSize: 10
-        slowCallRateThreshold: 50
-        slowCallDurationThreshold: 2s
-        
-  retry:
-    instances:
-      contactService:
-        maxAttempts: 3
-        waitDuration: 500ms
-        enableExponentialBackoff: true
-        exponentialBackoffMultiplier: 2
-        retryExceptions:
-          - org.springframework.dao.DataAccessException
-          - java.sql.SQLException
-        ignoreExceptions:
-          - java.lang.IllegalArgumentException
-          - jakarta.validation.ConstraintViolationException
-          
-  ratelimiter:
-    instances:
-      contactService:
-        limitForPeriod: 10
-        limitRefreshPeriod: 1s
-        timeoutDuration: 500ms
