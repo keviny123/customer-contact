@@ -1,8 +1,8 @@
 package com.keviny.customercontact.repository;
 
 import com.keviny.customercontact.model.Contact;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import io.micronaut.data.annotation.Repository;
+import io.micronaut.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 

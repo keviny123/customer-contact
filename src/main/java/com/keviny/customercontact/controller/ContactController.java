@@ -4,32 +4,33 @@ import com.keviny.customercontact.dto.ContactDto;
 import com.keviny.customercontact.mapper.ContactMapper;
 import com.keviny.customercontact.model.Contact;
 import com.keviny.customercontact.service.ContactService;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.http.annotation.*;
+import io.micronaut.validation.Validated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RestController
-@RequestMapping("/api/contacts")
+@Controller("/api/contacts")
 @Validated
 public class ContactController {
 
     private static final Logger logger = LoggerFactory.getLogger(ContactController.class);
 
-    @Autowired
-    private ContactService contactService;
+    private final ContactService contactService;
 
-    @GetMapping
-    public ResponseEntity<List<ContactDto>> getAllContacts() {
+    public ContactController(ContactService contactService) {
+        this.contactService = contactService;
+    }
+
+    @Get
+    public HttpResponse<List<ContactDto>> getAllContacts() {
         logger.info("Received request to get all contacts");
         
         List<Contact> contacts = contactService.findAllContacts();
@@ -38,11 +39,11 @@ public class ContactController {
                 .collect(Collectors.toList());
                 
         logger.info("Returning {} contacts", contactDtos.size());
-        return ResponseEntity.ok(contactDtos);
+        return HttpResponse.ok(contactDtos);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ContactDto> getContactById(
+    @Get("/{id}")
+    public HttpResponse<ContactDto> getContactById(
             @PathVariable @Min(value = 1, message = "Contact ID must be positive") Long id) {
         logger.info("Received request to get contact by ID: {}", id);
         
@@ -51,27 +52,25 @@ public class ContactController {
                     logger.info("Found contact with ID: {}", id);
                     return ContactMapper.toDto(contact);
                 })
-                .map(ResponseEntity::ok)
+                .map(HttpResponse::ok)
                 .orElseGet(() -> {
                     logger.info("Contact not found with ID: {}", id);
-                    return ResponseEntity.notFound().build();
+                    return HttpResponse.notFound();
                 });
     }
 
-    @PostMapping
-    public ResponseEntity<ContactDto> createOrUpdateContact(@Valid @RequestBody ContactDto contactDto) {
+    @Post
+    public HttpResponse<ContactDto> createOrUpdateContact(@Valid @Body ContactDto contactDto) {
         logger.info("Received request to create/update contact with email: {}", contactDto.getEmail());
         
         Contact savedContact = contactService.createOrUpdateContact(contactDto);
         
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(savedContact.getId())
-                .toUri();
+        URI location = URI.create("/api/contacts/" + savedContact.getId());
                 
         ContactDto responseDto = ContactMapper.toDto(savedContact);
         logger.info("Successfully created/updated contact with ID: {}", savedContact.getId());
         
-        return ResponseEntity.created(location).body(responseDto);
+        return HttpResponse.created(responseDto).headers(headers -> 
+            headers.location(location));
     }
 }

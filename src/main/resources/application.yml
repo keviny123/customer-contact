@@ -1,44 +1,43 @@
-spring:
-  datasource:
+micronaut:
+  application:
+    name: customer-contact
+  server:
+    port: ${SERVER_PORT:8081}
+    netty:
+      worker:
+        threads: 16
+      max-header-size: 8KB
+  data:
+    pageable:
+      max-page-size: 100
+  http:
+    client:
+      read-timeout: 30s
+  transaction:
+    read-only: false
+
+datasources:
+  default:
     url: jdbc:h2:file:./data/contactdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
+    driverClassName: org.h2.Driver
     username: sa
-    password:
-    
+    password: ""
     # HikariCP connection pool configuration optimized for HIGH TPS
     hikari:
-      # Aggressive connection pool sizing for maximum TPS
       maximum-pool-size: 50
       minimum-idle: 15
-      
-      # Optimized timeout settings for high throughput
       connection-timeout: 10000
       validation-timeout: 3000
       idle-timeout: 300000
       max-lifetime: 900000
-      
-      # High performance optimizations
       auto-commit: false
       read-only: false
-      
-      # Fast connection validation
       connection-test-query: SELECT 1
-      
-      # Pool name for monitoring
       pool-name: ContactAPIHikariCP
-      
-      # Reduced leak detection for better performance
       leak-detection-threshold: 30000
-      
-      # HikariCP specific optimizations for high TPS
       initialization-fail-timeout: 1
       isolate-internal-queries: false
       allow-pool-suspension: false
-      
-      # Connection acquisition optimizations  
-      # connection-init-sql: removed for H2 compatibility
-      
-      # Data source properties for H2 optimization
       data-source-properties:
         cachePrepStmts: true
         prepStmtCacheSize: 500
@@ -50,15 +49,15 @@ spring:
         cacheServerConfiguration: true
         elideSetAutoCommits: true
         maintainTimeStats: false
-      
-  jpa:
-    hibernate:
-      ddl-auto: update
+
+jpa:
+  default:
     properties:
       hibernate:
+        hbm2ddl:
+          auto: update
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
-        # Aggressive performance optimizations for maximum TPS
         jdbc:
           batch_size: 50
           order_inserts: true
@@ -72,56 +71,30 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
         generate_statistics: false
-    show-sql: false
+        show_sql: false
 
-  # Jackson configuration
-  jackson:
-    deserialization:
-      fail-on-unknown-properties: true
+jackson:
+  deserialization:
+    failOnUnknownProperties: true
 
-server:
-  port: ${SERVER_PORT:8081}
-  # Tomcat configuration optimized for maximum TPS
-  tomcat:
-    threads:
-      max: 500
-      min-spare: 50
-    connection-timeout: 10000
-    accept-count: 200
-    max-connections: 10000
-    max-http-form-post-size: 2MB
-    max-http-header-size: 8KB
-    processor-cache: 500
-    keep-alive-timeout: 20000
-    max-keep-alive-requests: 1000
-
-logging:
-  level:
+logger:
+  levels:
     com.keviny.customercontact: INFO
     com.zaxxer.hikari: INFO
     org.hibernate.SQL: WARN
-    root: WARN
+    ROOT: WARN
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,hikaricp,prometheus,circuitbreakers,retries
-  endpoint:
-    health:
-      show-details: always
-      show-components: always
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS
+  info:
+    enabled: true
+    sensitive: false
   metrics:
-    export:
-      simple:
-        enabled: true
-      prometheus:
-        enabled: true
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
-      slo:
-        http.server.requests: 50ms,100ms,200ms,300ms,500ms,1s
+    enabled: true
+    sensitive: false
 
 # Resilience4j configuration for fault tolerance
 resilience4j:
